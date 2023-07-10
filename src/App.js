@@ -333,7 +333,7 @@ function MainCard() {
     }
 
     var term;
-    if (mc_list.length > 0 && false) {
+    if (mc_list.length > 0) {
       term = mc_list[Math.floor((Math.random() * mc_list.length))];
       return ask_mc(term, cards, 1 - mc_list.length / Object.values(progress).length);
     }
