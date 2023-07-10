@@ -42,12 +42,6 @@ def ask_or(term, cards, bchars, progress):
         print()
 
 
-def study(cards, progress, bchars):
-    missed_words = []
-    missed_words.append(term + ' / ' + cards[term])
-    return missed_words
-
-
 def main():
     global mode
     cards_name = choose_set()

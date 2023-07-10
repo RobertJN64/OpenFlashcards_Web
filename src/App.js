@@ -19,12 +19,12 @@ const MODE_TERM = false;  // answer with term
 
 var mode = MODE_DEF; //TODO - handle modes
 //TODO - import progress
-//TODO - missed words
 //TODO - stopflag
 //TODO - bchars
 
 var cards = {};
 var progress = {};
+var missed_words = [];
 var canswer = ""; //correct answer
 var k_handler = null;
 
@@ -196,6 +196,8 @@ function MainCard() {
           <Card.Body>
             <Card.Title>Done!</Card.Title>
             <br />
+            <p>Missed words:&nbsp;{missed_words.join(', ')}</p>
+            <br />
             <Button style={{ width: '100%' }} className='btn-success' onClick={e_restart}>New Set!</Button>
             <p></p>
             <Button style={{ width: '100%' }} className='btn-success' onClick={e_again}>Study again!</Button>
@@ -222,6 +224,7 @@ function MainCard() {
         set_current_status(AppStatus.Correct);
       }
       else {
+        missed_words.push(term + '/' + cards[term]);
         progress[term]["missed"] = true;
         canswer = cards[term];
         set_current_status(AppStatus.Incorrect);
@@ -288,6 +291,7 @@ function MainCard() {
         set_current_status(AppStatus.Correct);
       }
       else {
+        missed_words.push(term + '/' + cards[term]);
         progress[term]["missed"] = true;
         canswer = cards[term];
         set_current_status(AppStatus.Incorrect);
