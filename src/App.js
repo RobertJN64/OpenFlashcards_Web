@@ -20,13 +20,14 @@ const MODE_TERM = false;  // answer with term
 var mode = MODE_DEF; //TODO - handle modes
 //TODO - import progress
 //TODO - stopflag
-//TODO - bchars
 
 var cards = {};
 var progress = {};
 var missed_words = [];
+var b_chars = [];
 var canswer = ""; //correct answer
 var k_handler = null;
+const normal_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 '
 
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -83,7 +84,6 @@ function MainCard() {
           }
         }
         console.log(cards);
-        set_upload_card_status("Found: " + Object.keys(cards).length + " cards.");
 
         var delkeys = []
         var addkeys = []
@@ -110,6 +110,15 @@ function MainCard() {
           }; //multichoice, open response
         }
         console.log(progress);
+
+        for (const word of Object.values(cards)) {
+          for (const char of word) {
+            if (!normal_chars.includes(char)) {
+              b_chars.push(char);
+            }
+          }
+        }
+        set_upload_card_status("Found: " + Object.keys(cards).length + " cards.");
       };
     };
 
@@ -224,7 +233,9 @@ function MainCard() {
         set_current_status(AppStatus.Correct);
       }
       else {
-        missed_words.push(term + '/' + cards[term]);
+        if (!missed_words.includes(term + '/' + cards[term])) {
+          missed_words.push(term + '/' + cards[term]);
+        }
         progress[term]["missed"] = true;
         canswer = cards[term];
         set_current_status(AppStatus.Incorrect);
@@ -291,7 +302,9 @@ function MainCard() {
         set_current_status(AppStatus.Correct);
       }
       else {
-        missed_words.push(term + '/' + cards[term]);
+        if (!missed_words.includes(term + '/' + cards[term])) {
+          missed_words.push(term + '/' + cards[term]);
+        }
         progress[term]["missed"] = true;
         canswer = cards[term];
         set_current_status(AppStatus.Incorrect);
@@ -308,6 +321,11 @@ function MainCard() {
       }
     }
 
+    var x = '';
+    if (b_chars.length > 0) {
+      x = <p>{b_chars.join(' ')}</p>
+    }
+
     return (
       <>
         <Card style={{ width: '50%', marginLeft: 'auto', marginRight: 'auto' }}>
@@ -315,6 +333,7 @@ function MainCard() {
             <p style={{ textAlign: 'right' }}>{perc.toFixed(4) * 100}%</p>
             <Card.Title>{term}</Card.Title>
             <br />
+            {x}
             <input onChange={e_update_input} autoFocus style={{ width: '70%' }}></input>
             &nbsp;
             <Button className='btn-success' onClick={submit_answer}>Submit!</Button>
