@@ -65,48 +65,33 @@ def p_done():
 
 def study(cards, progress, bchars):
     missed_words = []
-    while True:
 
-        if len(mc_list) > 0:
-            term = random.choice(mc_list)
-            if ask_mc(term, cards, 1 - len(mc_list)/len(progress)):
-                if stopflag:
-                    break
+    or_list = []
+    for key, value in progress.items():
+        if not value["or"]:
+            or_list.append(key)
 
-            else:
-                if stopflag:
-                    break
-                p_incorrect(cards[term])
-                if term + ' / ' + cards[term] not in missed_words:
-                    missed_words.append(term + ' / ' + cards[term])
-
-        else:
-            or_list = []
-            for key, value in progress.items():
-                if not value["or"]:
-                    or_list.append(key)
-
-            if len(or_list) > 0:
-                term = random.choice(or_list)
-                if ask_or(term, cards, bchars, 1 - len(or_list)/len(progress)):
-                    p_correct()
-                    if stopflag:
-                        break
-                    if progress[term]["missed"]:
-                        progress[term]["missed"] = False
-                    else:
-                        progress[term]["or"] = True
-                else:
-                    if stopflag:
-                        break
-                    p_incorrect(cards[term])
-                    progress[term]["missed"] = True
-                    if term + ' / ' + cards[term] not in missed_words:
-                        missed_words.append(term + ' / ' + cards[term])
-
-            else:
-                p_done()
+    if len(or_list) > 0:
+        term = random.choice(or_list)
+        if ask_or(term, cards, bchars, 1 - len(or_list)/len(progress)):
+            p_correct()
+            if stopflag:
                 break
+            if progress[term]["missed"]:
+                progress[term]["missed"] = False
+            else:
+                progress[term]["or"] = True
+        else:
+            if stopflag:
+                break
+            p_incorrect(cards[term])
+            progress[term]["missed"] = True
+            if term + ' / ' + cards[term] not in missed_words:
+                missed_words.append(term + ' / ' + cards[term])
+
+    else:
+        p_done()
+        break
     return missed_words
 
 

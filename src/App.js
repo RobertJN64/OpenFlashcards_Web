@@ -19,22 +19,12 @@ const MODE_TERM = false;  // answer with term
 var mode = MODE_DEF; //TODO - allow mode switching
 //TODO - missed words
 //TODO - stopflag
+//TODO - bchars
 
 var cards = {};
 var progress = {};
 var canswer = ""; //correct answer
-
-// window.addEventListener(
-//   "keydown",
-//   (event) => {
-//     if (['1', '2', '3', '4'].includes(event.key)) {
-//       e_btn(event.key);
-//     }
-//   },
-//   true,
-// );
-
-
+var e_btn_fn = null;
 
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -43,15 +33,32 @@ function shuffleArray(array) {
   }
 }
 
+window.addEventListener(
+  "keydown",
+  (event) => {
+    if (['1', '2', '3', '4', 'Enter'].includes(event.key)) {
+      if (e_btn_fn != null) {
+        e_btn_fn(event.key);
+      }
+    }
+  },
+  true,
+);
+
 function MainCard() {
   const [current_status, set_current_status] = useState(app_status.WaitingOnStart);
-
-  function e_start() {
-    set_current_status(app_status.AskQuestion);
-  }
-
   function StartScreen() {
     const [upload_card_status, set_upload_card_status] = useState("Waiting on upload...");
+
+    function e_start() {
+      set_current_status(app_status.AskQuestion);
+    }
+
+    e_btn_fn = (x) => {
+      if (x === 'Enter') {
+        e_start();
+      }
+    }
 
     const handleCardsUpload = e => {
       const fileReader = new FileReader();
@@ -126,6 +133,9 @@ function MainCard() {
     var answers = [cards[term]];
 
     function e_btn(x) {
+      if (x === 'Enter') {
+        return;
+      }
       if (answers[x - 1] === cards[term]) {
         if (progress[term]["missed"]) {
           progress[term]["missed"] = false;
@@ -142,11 +152,12 @@ function MainCard() {
       }
     }
 
+    e_btn_fn = e_btn;
+
     function e_btn_1() { e_btn(1) };
     function e_btn_2() { e_btn(2) };
     function e_btn_3() { e_btn(3) };
     function e_btn_4() { e_btn(4) };
-
 
     while (answers.length < 4) {
       var c = answers[0];
@@ -168,15 +179,15 @@ function MainCard() {
             <table style={{ width: '100%' }}>
               <tbody>
                 <tr>
-                  <td><Button style={{ width: '100%' }} onClick={e_btn_1}>{answers[0]}</Button></td>
+                  <td><Button style={{ width: '100%' }} onClick={e_btn_1}>1:&nbsp;{answers[0]}</Button></td>
                   <td></td>
-                  <td><Button style={{ width: '100%' }} onClick={e_btn_2}>{answers[1]}</Button></td>
+                  <td><Button style={{ width: '100%' }} onClick={e_btn_2}>2:&nbsp;{answers[1]}</Button></td>
                 </tr>
                 <tr><td><p></p></td></tr>
                 <tr>
-                  <td><Button style={{ width: '100%' }} onClick={e_btn_3}>{answers[2]}</Button></td>
+                  <td><Button style={{ width: '100%' }} onClick={e_btn_3}>3:&nbsp;{answers[2]}</Button></td>
                   <td></td>
-                  <td><Button style={{ width: '100%' }} onClick={e_btn_4}>{answers[3]}</Button></td>
+                  <td><Button style={{ width: '100%' }} onClick={e_btn_4}>4:&nbsp;{answers[3]}</Button></td>
                 </tr>
               </tbody>
             </table>
@@ -187,20 +198,46 @@ function MainCard() {
     )
   }
 
+  function ask_or(term, cards, perc) {
+    var answers = [cards[term]];
+
+    return (
+      <>
+        <Card style={{ width: '50%', marginLeft: 'auto', marginRight: 'auto' }}>
+          <Card.Body>
+            <p style={{ textAlign: 'right' }}>{perc.toFixed(4) * 100}%</p>
+            <Card.Title>{term}</Card.Title>
+            <br />
+            {/*TODO - input field*/}
+          </Card.Body>
+        </Card>
+      </>
+    )
+  }
+
   function AskQuestion() {
     var mc_list = []
+    var or_list = []
     for (const key of Object.keys(progress)) {
       if (!progress[key]['mc']) {
         mc_list.push(key);
       }
+      if (!progress[key]['or']) {
+        or_list.push(key);
+      }
     }
 
+    var term;
     if (mc_list.length > 0) {
-      var term = mc_list[Math.floor((Math.random() * mc_list.length))];
+      term = mc_list[Math.floor((Math.random() * mc_list.length))];
       return ask_mc(term, cards, 1 - mc_list.length / Object.values(progress).length);
     }
+    else if (or_list.length > 0) {
+      term = or_list[Math.floor((Math.random() * or_list.length))];
+      return ask_or(term, cards, 1 - or_list.length / Object.values(progress).length);
+    }
     else {
-      set_current_status(app_status.Done); //TODO - OR
+      set_current_status(app_status.Done);
     }
   }
 
@@ -220,6 +257,12 @@ function MainCard() {
   function Incorrect() {
     function e_inc_cont() {
       set_current_status(app_status.AskQuestion);
+    }
+
+    e_btn_fn = (x) => {
+      if (x === 'Enter') {
+        e_inc_cont();
+      }
     }
 
     return (
@@ -266,6 +309,7 @@ function MainCard() {
     )
   }
 
+  e_btn_fn = null;
   switch (current_status) {
     case app_status.WaitingOnStart:
       return <StartScreen />
