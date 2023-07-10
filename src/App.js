@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
 import Container from 'react-bootstrap/Container';
-//import Form from 'react-bootstrap/Form'
+import Form from 'react-bootstrap/Form'
 
 import './App.css';
 
@@ -18,10 +18,8 @@ const AppStatus = {
 const MODE_DEF = true; // answer with def
 const MODE_TERM = false;  // answer with term
 
-var mode = MODE_DEF; //TODO - handle modes
-//TODO - import / export progress
-//TODO - stopflag
-
+var file_name = 'none';
+var cards_raw;
 var cards = {};
 var progress = {};
 var missed_words = [];
@@ -42,7 +40,7 @@ function download_progress() {
   var a = document.createElement("a"),
     url = URL.createObjectURL(file);
   a.href = url;
-  a.download = 'example.progress'
+  a.download = file_name + '.progress'
   document.body.appendChild(a);
   a.click();
   setTimeout(function () {
@@ -65,10 +63,64 @@ window.addEventListener(
 
 function MainCard() {
   const [current_status, set_current_status] = useState(AppStatus.WaitingOnStart);
+
   function StartScreen() {
+    const [mode, set_mode] = useState(MODE_DEF);
     const [upload_card_status, set_upload_card_status] = useState("Waiting on upload...");
+    const [upload_progress_status, set_upload_progress_status] = useState("Waiting on upload...");
 
     function btn_start() {
+      for (var line of cards_raw) {
+        line = line.trim();
+        if (!line.includes(' | ')) {
+          continue
+        }
+        var term = line.split(' | ')[0];
+        var definition = line.split(' | ')[1];
+
+        if (mode) {
+          cards[term] = definition;
+        }
+        else {
+          cards[definition] = term
+        }
+      }
+      console.log(cards);
+
+      var delkeys = []
+      var addkeys = []
+      for (const key of Object.keys(progress)) {
+        if (!(key in cards)) {
+          delkeys.push(key);
+        }
+      }
+
+      for (const key of Object.keys(cards)) {
+        if (!(key in progress)) {
+          addkeys.push(key);
+        }
+      }
+
+      for (const key of delkeys) {
+        delete progress[key];
+      }
+
+      for (const key of addkeys) {
+        progress[key] = {
+          "mc": false, "or": false,
+          "missed": false
+        }; //multichoice, open response
+      }
+      console.log(progress);
+
+      for (const word of Object.values(cards)) {
+        for (const char of word) {
+          if (!normal_chars.includes(char)) {
+            b_chars.push(char);
+          }
+        }
+      }
+
       set_current_status(AppStatus.AskQuestion);
     }
 
@@ -81,60 +133,35 @@ function MainCard() {
     const handleCardsUpload = e => {
       const fileReader = new FileReader();
       fileReader.readAsText(e.target.files[0], "UTF-8");
+      file_name = e.target.files[0].name.split('.')[0];
       fileReader.onload = e => {
-        var lines = e.target.result.split('\n');
-        for (var line of lines) {
+
+        cards_raw = e.target.result.split('\n');
+        var count = 0
+        for (var line of cards_raw) {
           line = line.trim();
           if (!line.includes(' | ')) {
             alert("<" + line + "> did not contain ` | `");
           }
-          var term = line.split(' | ')[0];
-          var definition = line.split(' | ')[1];
-
-          if (mode) {
-            cards[term] = definition;
-          }
           else {
-            cards[definition] = term
+            count += 1;
           }
         }
-        console.log(cards);
-
-        var delkeys = []
-        var addkeys = []
-        for (const key of Object.keys(progress)) {
-          if (!(key in cards)) {
-            delkeys.push(key);
-          }
-        }
-
-        for (const key of Object.keys(cards)) {
-          if (!(key in progress)) {
-            addkeys.push(key);
-          }
-        }
-
-        for (const key of delkeys) {
-          delete progress[key];
-        }
-
-        for (const key of addkeys) {
-          progress[key] = {
-            "mc": false, "or": false,
-            "missed": false
-          }; //multichoice, open response
-        }
-        console.log(progress);
-
-        for (const word of Object.values(cards)) {
-          for (const char of word) {
-            if (!normal_chars.includes(char)) {
-              b_chars.push(char);
-            }
-          }
-        }
-        set_upload_card_status("Found: " + Object.keys(cards).length + " cards.");
+        set_upload_card_status("Found: " + count + " cards.");
       };
+    };
+
+    const handleProgressUpload = e => {
+      const fileReader = new FileReader();
+      fileReader.readAsText(e.target.files[0], "UTF-8");
+      fileReader.onload = e => {
+        progress = JSON.parse(e.target.result);
+        set_upload_progress_status("Progress loaded...");
+      };
+    };
+
+    const mode_change = e => {
+      set_mode(!mode);
     };
 
     return (
@@ -143,15 +170,20 @@ function MainCard() {
           <Card.Body>
 
             <Card.Title>Load your cards...</Card.Title>
-            <br />
             <input type="file" onChange={handleCardsUpload} />
             <p>{upload_card_status}</p>
+
+            <Card.Title>Upload progress (optional)</Card.Title>
+            <input type="file" onChange={handleProgressUpload} />
+            <p>{upload_progress_status}</p>
+            <br />
             <br />
 
-            {/* <Form>
-              <Form.Check onChange={mode_change} type='radio' name="mode_termdef" label='Answer with Definition' checked />
-              <Form.Check onChange={mode_change} type='radio' name="mode_termdef" label='Answer with Term' />
-            </Form> */}
+            <Form.Group>
+              <Form.Check onChange={mode_change} value={MODE_DEF} type='radio' label='Answer with Definition' checked={mode === MODE_DEF} />
+              <Form.Check onChange={mode_change} value={MODE_TERM} type='radio' label='Answer with Term' checked={mode === MODE_TERM} />
+            </Form.Group>
+            <br />
 
             <Button style={{ width: '100%' }} className='btn-success' onClick={btn_start}>Start</Button>
           </Card.Body>
