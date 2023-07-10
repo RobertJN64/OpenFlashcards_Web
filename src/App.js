@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
+//import Form from 'react-bootstrap/Form'
 
 import './App.css';
 
@@ -16,7 +17,7 @@ const AppStatus = {
 const MODE_DEF = true; // answer with def
 const MODE_TERM = false;  // answer with term
 
-var mode = MODE_DEF; //TODO - allow mode switching
+var mode = MODE_DEF; //TODO - handle modes
 //TODO - import progress
 //TODO - missed words
 //TODO - stopflag
@@ -122,6 +123,12 @@ function MainCard() {
             <input type="file" onChange={handleCardsUpload} />
             <p>{upload_card_status}</p>
             <br />
+
+            {/* <Form>
+              <Form.Check onChange={mode_change} type='radio' name="mode_termdef" label='Answer with Definition' checked />
+              <Form.Check onChange={mode_change} type='radio' name="mode_termdef" label='Answer with Term' />
+            </Form> */}
+
             <Button style={{ width: '100%' }} className='btn-success' onClick={btn_start}>Start</Button>
           </Card.Body>
         </Card >
@@ -271,7 +278,6 @@ function MainCard() {
     var answer = "";
 
     function submit_answer() {
-      console.log(progress);
       if (answer === cards[term]) {
         if (progress[term]["missed"]) {
           progress[term]["missed"] = false;
