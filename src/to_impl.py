@@ -13,14 +13,11 @@ def load_progress(cards_name, cards):
 
 
 def main():
-    global mode
-    cards_name = choose_set()
-    if cards_name:
-        if input("Answer with (term / def): ").lower() == "term":
-            mode = MODE_TERM
+    if input("Answer with (term / def): ").lower() == "term":
+        mode = MODE_TERM
 
-        progress = load_progress(cards_name, cards)
+    progress = load_progress(cards_name, cards)
 
-        if input("Save progress (y / n): ").lower()[0] == "y":
-            with open('sets/' + cards_name + '.progress', 'w+', encoding="utf-8") as f:
-                json.dump(progress, f, indent=4)
+    if input("Save progress (y / n): ").lower()[0] == "y":
+        with open('sets/' + cards_name + '.progress', 'w+', encoding="utf-8") as f:
+            json.dump(progress, f, indent=4)

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
+import Container from 'react-bootstrap/Container';
 //import Form from 'react-bootstrap/Form'
 
 import './App.css';
@@ -18,7 +19,7 @@ const MODE_DEF = true; // answer with def
 const MODE_TERM = false;  // answer with term
 
 var mode = MODE_DEF; //TODO - handle modes
-//TODO - import progress
+//TODO - import / export progress
 //TODO - stopflag
 
 var cards = {};
@@ -34,6 +35,20 @@ function shuffleArray(array) {
     const j = Math.floor(Math.random() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
   }
+}
+
+function download_progress() {
+  var file = new Blob([JSON.stringify(progress, undefined, 2)]);
+  var a = document.createElement("a"),
+    url = URL.createObjectURL(file);
+  a.href = url;
+  a.download = 'example.progress'
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function () {
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  }, 0);
 }
 
 window.addEventListener(
@@ -124,7 +139,7 @@ function MainCard() {
 
     return (
       <>
-        <Card style={{ width: '50%', marginLeft: 'auto', marginRight: 'auto' }}>
+        <Card>
           <Card.Body>
 
             <Card.Title>Load your cards...</Card.Title>
@@ -150,7 +165,7 @@ function MainCard() {
     setTimeout(() => set_current_status(AppStatus.AskQuestion), 1000)
     return (
       <>
-        <Card style={{ width: '50%', marginLeft: 'auto', marginRight: 'auto' }}>
+        <Card>
           <Card.Body>
             <Card.Title>Correct!</Card.Title>
           </Card.Body>
@@ -172,7 +187,7 @@ function MainCard() {
 
     return (
       <>
-        <Card style={{ width: '50%', marginLeft: 'auto', marginRight: 'auto' }}>
+        <Card>
           <Card.Body>
             <Card.Title>Incorrect!</Card.Title>
             <br />
@@ -201,7 +216,7 @@ function MainCard() {
 
     return (
       <>
-        <Card style={{ width: '50%', marginLeft: 'auto', marginRight: 'auto' }}>
+        <Card>
           <Card.Body>
             <Card.Title>Done!</Card.Title>
             <br />
@@ -261,7 +276,7 @@ function MainCard() {
 
     return (
       <>
-        <Card style={{ width: '50%', marginLeft: 'auto', marginRight: 'auto' }}>
+        <Card>
           <Card.Body>
             <p style={{ textAlign: 'right' }}>{perc.toFixed(4) * 100}%</p>
             <Card.Title>{term}</Card.Title>
@@ -328,7 +343,7 @@ function MainCard() {
 
     return (
       <>
-        <Card style={{ width: '50%', marginLeft: 'auto', marginRight: 'auto' }}>
+        <Card>
           <Card.Body>
             <p style={{ textAlign: 'right' }}>{perc.toFixed(4) * 100}%</p>
             <Card.Title>{term}</Card.Title>
@@ -395,7 +410,12 @@ function MainCard() {
 const App = () => (
   <>
     <h1 className="text-center">Open Flashcards Web</h1>
-    <MainCard />
+    <Container style={{ width: '600px', marginLeft: 'auto', marginRight: 'auto' }}>
+      <MainCard />
+      <br />
+      <Button style={{ float: 'right' }} className='btn-secondary' onClick={download_progress}>Download Progress</Button>
+    </Container>
+
   </>
 );
 
