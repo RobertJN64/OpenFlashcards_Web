@@ -16,5 +16,5 @@ The free alternative to certain studying apps that demand payment for basic feat
  - "Save and edit" a study set
  - Export
   ![export](export.png)
- - Definitions and words should be separated by ` | `
+ - Definitions and words should be separated by ` | ` (space + pipe + space)
  - Save as set_name.cards
