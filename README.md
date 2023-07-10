@@ -12,7 +12,9 @@ The free alternative to certain studying apps that demand payment for basic feat
 - Enter: submit / next screen
 - 1-4: choose answer
 
-## Import
-Definitions and words should be separated by ` | `
-
-
+## Import Steps
+ - "Save and edit" a study set
+ - Export
+  ![export](export.png)
+ - Definitions and words should be separated by ` | `
+ - Save as set_name.cards
