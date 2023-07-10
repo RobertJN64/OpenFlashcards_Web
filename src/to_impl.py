@@ -33,65 +33,18 @@ def load_progress(cards_name, cards):
 
 def ask_or(term, cards, bchars, progress):
     global stopflag
-    print()
-    print()
-    print("  " + term + " " * (prog_pos - len(term)) +
-          " " + str(round(progress * 100, 2)) + '%')
-    print()
-    print()
-    print()
+
     if len(bchars) != 0:
         for char in bchars:
             print(" " + char, end='')
         print()
     else:
         print()
-    print()
-    resp = input('> ')
-    if resp == 'stop':
-        stopflag = True
-    return resp == cards[term]
-
-
-def p_done():
-    print()
-    print()
-    print("+-----------------------------------------+")
-    print("|                                         |")
-    print("|                  Done!                  |")
-    print("|                                         |")
-    print("+-----------------------------------------+")
 
 
 def study(cards, progress, bchars):
     missed_words = []
-
-    or_list = []
-    for key, value in progress.items():
-        if not value["or"]:
-            or_list.append(key)
-
-    if len(or_list) > 0:
-        term = random.choice(or_list)
-        if ask_or(term, cards, bchars, 1 - len(or_list)/len(progress)):
-            p_correct()
-            if stopflag:
-                break
-            if progress[term]["missed"]:
-                progress[term]["missed"] = False
-            else:
-                progress[term]["or"] = True
-        else:
-            if stopflag:
-                break
-            p_incorrect(cards[term])
-            progress[term]["missed"] = True
-            if term + ' / ' + cards[term] not in missed_words:
-                missed_words.append(term + ' / ' + cards[term])
-
-    else:
-        p_done()
-        break
+    missed_words.append(term + ' / ' + cards[term])
     return missed_words
 
 

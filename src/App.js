@@ -5,18 +5,19 @@ import Card from 'react-bootstrap/Card';
 
 import './App.css';
 
-const app_status = {
+const AppStatus = {
   WaitingOnStart: Symbol("WaitingOnStart"),
   AskQuestion: Symbol("AsQuestion"),
   Correct: Symbol("Correct"),
   Incorrect: Symbol("Incorrect"),
-  End: Symbol("End"),
+  Done: Symbol("Done")
 }
 
 const MODE_DEF = true; // answer with def
 const MODE_TERM = false;  // answer with term
 
 var mode = MODE_DEF; //TODO - allow mode switching
+//TODO - import progress
 //TODO - missed words
 //TODO - stopflag
 //TODO - bchars
@@ -24,7 +25,7 @@ var mode = MODE_DEF; //TODO - allow mode switching
 var cards = {};
 var progress = {};
 var canswer = ""; //correct answer
-var e_btn_fn = null;
+var k_handler = null;
 
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
@@ -37,8 +38,8 @@ window.addEventListener(
   "keydown",
   (event) => {
     if (['1', '2', '3', '4', 'Enter'].includes(event.key)) {
-      if (e_btn_fn != null) {
-        e_btn_fn(event.key);
+      if (k_handler != null) {
+        k_handler(event.key);
       }
     }
   },
@@ -46,17 +47,17 @@ window.addEventListener(
 );
 
 function MainCard() {
-  const [current_status, set_current_status] = useState(app_status.WaitingOnStart);
+  const [current_status, set_current_status] = useState(AppStatus.WaitingOnStart);
   function StartScreen() {
     const [upload_card_status, set_upload_card_status] = useState("Waiting on upload...");
 
-    function e_start() {
-      set_current_status(app_status.AskQuestion);
+    function btn_start() {
+      set_current_status(AppStatus.AskQuestion);
     }
 
-    e_btn_fn = (x) => {
+    k_handler = (x) => {
       if (x === 'Enter') {
-        e_start();
+        btn_start();
       }
     }
 
@@ -121,7 +122,7 @@ function MainCard() {
             <input type="file" onChange={handleCardsUpload} />
             <p>{upload_card_status}</p>
             <br />
-            <Button style={{ width: '100%' }} className='btn-success' onClick={e_start}>Start</Button>
+            <Button style={{ width: '100%' }} className='btn-success' onClick={btn_start}>Start</Button>
           </Card.Body>
         </Card >
 
@@ -129,10 +130,78 @@ function MainCard() {
     )
   }
 
+  function Correct() {
+    setTimeout(() => set_current_status(AppStatus.AskQuestion), 1000)
+    return (
+      <>
+        <Card style={{ width: '50%', marginLeft: 'auto', marginRight: 'auto' }}>
+          <Card.Body>
+            <Card.Title>Correct!</Card.Title>
+          </Card.Body>
+        </Card >
+      </>
+    )
+  }
+
+  function Incorrect() {
+    function continue_to_question() {
+      set_current_status(AppStatus.AskQuestion);
+    }
+
+    k_handler = (x) => {
+      if (x === 'Enter') {
+        continue_to_question();
+      }
+    }
+
+    return (
+      <>
+        <Card style={{ width: '50%', marginLeft: 'auto', marginRight: 'auto' }}>
+          <Card.Body>
+            <Card.Title>Incorrect!</Card.Title>
+            <br />
+            <p className="text-center">{canswer}</p>
+            <Button style={{ width: '100%' }} className='btn-danger' onClick={continue_to_question}>Continue</Button>
+          </Card.Body>
+        </Card >
+      </>
+    )
+  }
+
+  function Done() {
+    function e_restart() {
+      set_current_status(AppStatus.WaitingOnStart);
+    }
+
+    function e_again() {
+      for (const key of Object.keys(progress)) {
+        progress[key] = {
+          "mc": false, "or": false,
+          "missed": false
+        }; //multichoice, open response
+      }
+      set_current_status(AppStatus.AskQuestion);
+    }
+
+    return (
+      <>
+        <Card style={{ width: '50%', marginLeft: 'auto', marginRight: 'auto' }}>
+          <Card.Body>
+            <Card.Title>Done!</Card.Title>
+            <br />
+            <Button style={{ width: '100%' }} className='btn-success' onClick={e_restart}>New Set!</Button>
+            <p></p>
+            <Button style={{ width: '100%' }} className='btn-success' onClick={e_again}>Study again!</Button>
+          </Card.Body>
+        </Card >
+      </>
+    )
+  }
+
   function ask_mc(term, cards, perc) {
     var answers = [cards[term]];
 
-    function e_btn(x) {
+    function check_answer(x) {
       if (x === 'Enter') {
         return;
       }
@@ -143,21 +212,21 @@ function MainCard() {
         else {
           progress[term]["mc"] = true;
         }
-        set_current_status(app_status.Correct);
+        set_current_status(AppStatus.Correct);
       }
       else {
         progress[term]["missed"] = true;
         canswer = cards[term];
-        set_current_status(app_status.Incorrect);
+        set_current_status(AppStatus.Incorrect);
       }
     }
 
-    e_btn_fn = e_btn;
+    k_handler = check_answer;
 
-    function e_btn_1() { e_btn(1) };
-    function e_btn_2() { e_btn(2) };
-    function e_btn_3() { e_btn(3) };
-    function e_btn_4() { e_btn(4) };
+    function btn_1() { check_answer(1) };
+    function btn_2() { check_answer(2) };
+    function btn_3() { check_answer(3) };
+    function btn_4() { check_answer(4) };
 
     while (answers.length < 4) {
       var c = answers[0];
@@ -179,15 +248,15 @@ function MainCard() {
             <table style={{ width: '100%' }}>
               <tbody>
                 <tr>
-                  <td><Button style={{ width: '100%' }} onClick={e_btn_1}>1:&nbsp;{answers[0]}</Button></td>
+                  <td><Button style={{ width: '100%' }} onClick={btn_1}>1:&nbsp;{answers[0]}</Button></td>
                   <td></td>
-                  <td><Button style={{ width: '100%' }} onClick={e_btn_2}>2:&nbsp;{answers[1]}</Button></td>
+                  <td><Button style={{ width: '100%' }} onClick={btn_2}>2:&nbsp;{answers[1]}</Button></td>
                 </tr>
                 <tr><td><p></p></td></tr>
                 <tr>
-                  <td><Button style={{ width: '100%' }} onClick={e_btn_3}>3:&nbsp;{answers[2]}</Button></td>
+                  <td><Button style={{ width: '100%' }} onClick={btn_3}>3:&nbsp;{answers[2]}</Button></td>
                   <td></td>
-                  <td><Button style={{ width: '100%' }} onClick={e_btn_4}>4:&nbsp;{answers[3]}</Button></td>
+                  <td><Button style={{ width: '100%' }} onClick={btn_4}>4:&nbsp;{answers[3]}</Button></td>
                 </tr>
               </tbody>
             </table>
@@ -199,7 +268,35 @@ function MainCard() {
   }
 
   function ask_or(term, cards, perc) {
-    var answers = [cards[term]];
+    var answer = "";
+
+    function submit_answer() {
+      console.log(progress);
+      if (answer === cards[term]) {
+        if (progress[term]["missed"]) {
+          progress[term]["missed"] = false;
+        }
+        else {
+          progress[term]["or"] = true;
+        }
+        set_current_status(AppStatus.Correct);
+      }
+      else {
+        progress[term]["missed"] = true;
+        canswer = cards[term];
+        set_current_status(AppStatus.Incorrect);
+      }
+    }
+
+    function e_update_input(event) {
+      answer = event.target.value;
+    }
+
+    k_handler = (x) => {
+      if (x === 'Enter') {
+        submit_answer();
+      }
+    }
 
     return (
       <>
@@ -208,9 +305,11 @@ function MainCard() {
             <p style={{ textAlign: 'right' }}>{perc.toFixed(4) * 100}%</p>
             <Card.Title>{term}</Card.Title>
             <br />
-            {/*TODO - input field*/}
+            <input onChange={e_update_input} autoFocus style={{ width: '70%' }}></input>
+            &nbsp;
+            <Button className='btn-success' onClick={submit_answer}>Submit!</Button>
           </Card.Body>
-        </Card>
+        </Card >
       </>
     )
   }
@@ -228,7 +327,7 @@ function MainCard() {
     }
 
     var term;
-    if (mc_list.length > 0) {
+    if (mc_list.length > 0 && false) {
       term = mc_list[Math.floor((Math.random() * mc_list.length))];
       return ask_mc(term, cards, 1 - mc_list.length / Object.values(progress).length);
     }
@@ -237,90 +336,27 @@ function MainCard() {
       return ask_or(term, cards, 1 - or_list.length / Object.values(progress).length);
     }
     else {
-      set_current_status(app_status.Done);
-    }
-  }
-
-  function Correct() {
-    setTimeout(() => set_current_status(app_status.AskQuestion), 1000)
-    return (
-      <>
-        <Card style={{ width: '50%', marginLeft: 'auto', marginRight: 'auto' }}>
-          <Card.Body>
-            <Card.Title>Correct!</Card.Title>
-          </Card.Body>
-        </Card >
-      </>
-    )
-  }
-
-  function Incorrect() {
-    function e_inc_cont() {
-      set_current_status(app_status.AskQuestion);
-    }
-
-    e_btn_fn = (x) => {
-      if (x === 'Enter') {
-        e_inc_cont();
+      function done_handler() {
+        set_current_status(AppStatus.Done); //can't update state while rendering
       }
-    }
 
-    return (
-      <>
-        <Card style={{ width: '50%', marginLeft: 'auto', marginRight: 'auto' }}>
-          <Card.Body>
-            <Card.Title>Incorrect!</Card.Title>
-            <br />
-            <p className="text-center">{canswer}</p>
-            <Button style={{ width: '100%' }} className='btn-danger' onClick={e_inc_cont}>Continue</Button>
-          </Card.Body>
-        </Card >
-      </>
-    )
-  }
-
-  function Done() {
-    function e_restart() {
-      set_current_status(app_status.WaitingOnStart);
-    }
-
-    function e_again() {
-      for (const key of Object.keys(progress)) {
-        progress[key] = {
-          "mc": false, "or": false,
-          "missed": false
-        }; //multichoice, open response
-      }
-      set_current_status(app_status.AskQuestion);
-    }
-
-    return (
-      <>
-        <Card style={{ width: '50%', marginLeft: 'auto', marginRight: 'auto' }}>
-          <Card.Body>
-            <Card.Title>Done!</Card.Title>
-            <br />
-            <Button style={{ width: '100%' }} className='btn-success' onClick={e_restart}>New Set!</Button>
-            <p></p>
-            <Button style={{ width: '100%' }} className='btn-success' onClick={e_again}>Study again!</Button>
-          </Card.Body>
-        </Card >
-      </>
-    )
-  }
-
-  e_btn_fn = null;
-  switch (current_status) {
-    case app_status.WaitingOnStart:
-      return <StartScreen />
-    case app_status.AskQuestion:
-      return <AskQuestion />
-    case app_status.Correct:
-      return <Correct />
-    case app_status.Incorrect:
-      return <Incorrect />
-    case app_status.Done:
+      setTimeout(done_handler, 100);
       return <Done />
+    }
+  }
+
+  k_handler = null;
+  switch (current_status) {
+    case AppStatus.WaitingOnStart:
+      return <StartScreen />;
+    case AppStatus.AskQuestion:
+      return <AskQuestion />;
+    case AppStatus.Correct:
+      return <Correct />;
+    case AppStatus.Incorrect:
+      return <Incorrect />;
+    case AppStatus.Done:
+      return <Done />;
     default:
       alert("App status invalid! " + current_status)
       break;
