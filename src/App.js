@@ -310,7 +310,7 @@ function MainCard() {
       <>
         <Card>
           <Card.Body>
-            <p style={{ textAlign: 'right' }}>{perc.toFixed(4) * 100}%</p>
+            <p style={{ textAlign: 'right' }}>{(perc * 100).toFixed(2)}%</p>
             <Card.Title>{term}</Card.Title>
             <br />
             <table style={{ width: '100%' }}>
@@ -377,7 +377,7 @@ function MainCard() {
       <>
         <Card>
           <Card.Body>
-            <p style={{ textAlign: 'right' }}>{perc.toFixed(4) * 100}%</p>
+            <p style={{ textAlign: 'right' }}>{(perc * 100).toFixed(2)}%</p>
             <Card.Title>{term}</Card.Title>
             <br />
             {x}
