@@ -115,7 +115,7 @@ function MainCard() {
 
       for (const word of Object.values(cards)) {
         for (const char of word) {
-          if (!normal_chars.includes(char)) {
+          if (!normal_chars.includes(char) && !b_chars.includes(char)) {
             b_chars.push(char);
           }
         }
@@ -233,6 +233,9 @@ function MainCard() {
 
   function Done() {
     function e_restart() {
+      missed_words = [];
+      cards = {};
+      progress = {};
       set_current_status(AppStatus.WaitingOnStart);
     }
 
@@ -243,6 +246,7 @@ function MainCard() {
           "missed": false
         }; //multichoice, open response
       }
+      missed_words = [];
       set_current_status(AppStatus.AskQuestion);
     }
 
